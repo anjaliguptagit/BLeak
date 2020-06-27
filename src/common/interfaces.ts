@@ -356,9 +356,18 @@ export interface IProgressBar extends Log {
 /**
  * Indicates an item's growth status.
  * **MUST FIT INTO 2 BITS.** (Value <= 3)
- */
+ 
 export const enum GrowthStatus {
   NEW = 0,
   NOT_GROWING = 1,
   GROWING = 2
+*/
+
+// NEW VERSION - item's growth status must fit into 2 bits
+
+export const enum GrowthStatus {
+  NOT_GROWING = 0,
+  GROWING = 1,
+  NOT_INCREASING = 2,
+  INCREASING = 3
 }

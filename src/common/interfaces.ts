@@ -369,5 +369,5 @@ export const enum GrowthStatus {
   NEW = 0,
   NOT_GROWING = 1,
   GROWING = 2,
-  INCREASING = 3
+  EQUAL = 3
 }

@@ -366,8 +366,8 @@ export const enum GrowthStatus {
 // NEW VERSION - item's growth status must fit into 2 bits
 
 export const enum GrowthStatus {
-  NOT_GROWING = 0,
-  GROWING = 1,
-  NOT_INCREASING = 2,
+  NEW = 0,
+  NOT_GROWING = 1,
+  GROWING = 2,
   INCREASING = 3
 }

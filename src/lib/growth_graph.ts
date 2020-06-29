@@ -159,7 +159,7 @@ function hash(parent: Node, edge: Edge): string | number {
  * @param newG The new heap graph.
  * @param newGrowth Growth bits for the nodes in the new heap graph.
 */
-function propagateGrowthNew(oldG: HeapGraph, newG: HeapGraph, newGrowth: TwoBitArray): void {
+function propagateGrowthNew(oldG: HeapGraph, newG: HeapGraph, newGrowth: TwoBitArray, trackLeaks: Map <NodeIndex[], HeapGraph> ): void {
   let flag = 0;
   const numNewNodes = newG.nodeCount;
   let index = 0;
@@ -170,6 +170,7 @@ function propagateGrowthNew(oldG: HeapGraph, newG: HeapGraph, newGrowth: TwoBitA
   let queueLength = 0;
   // Only store visit bits for the new graph.
   const visitBits = new OneBitArray(numNewNodes);
+  let nodesArray = new Array<NodeIndex>(numNewNodes);
 
   // Enqueues the given node pairing (represented by their indices in their respective graphs)
   // into the queue. oldNodeIndex and newNodeIndex represent a node at the same edge shared between
@@ -237,6 +238,7 @@ function propagateGrowthNew(oldG: HeapGraph, newG: HeapGraph, newGrowth: TwoBitA
     if (oldNode.numProperties() < newNode.numProperties()) {
       newGrowth.set(newIndex, GrowthStatus.GROWING);
       flag = 1;
+      nodesArray.push(newIndex);
     }
 
     else if (oldNode.numProperties() == newNode.numProperties()) {
@@ -265,7 +267,10 @@ function propagateGrowthNew(oldG: HeapGraph, newG: HeapGraph, newGrowth: TwoBitA
       }
     }
   }
-  
+  if (flag) {
+    trackLeaks.set(nodesArray, newG);
+  }
+
   return flag;
 }
 

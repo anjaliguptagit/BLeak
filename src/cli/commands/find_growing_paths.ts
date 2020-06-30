@@ -27,7 +27,11 @@ async function main(files: string[]) {
     console.log(`Processing ${file}...`);
     await t.addSnapshot(getHeapSnapshotParser(file), ConsoleLog);
   }
-
+  
+  //changes to get irregular heap graph o/p
+  t._heap = t._irreg_heap;
+  t._growthStatus = t._irreg_growthStatus;
+  
   const growth = time('Get Growing Objects', ConsoleLog, () => t.findLeakPaths(ConsoleLog));
   console.log(`Found ${growth.length} growing paths.`);
   console.log(``);

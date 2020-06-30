@@ -400,6 +400,7 @@ function propagateGrowth(oldG: HeapGraph, oldGrowth: TwoBitArray, newG: HeapGrap
 /**
  * Tracks growth in the heap.
  */
+/*
 export class HeapGrowthTracker {
   private _stringMap: StringMap = new StringMap();
   private _heap: HeapGraph = null;
@@ -423,6 +424,60 @@ export class HeapGrowthTracker {
     // Keep new graph.
     this._heap = heap;
     this._growthStatus = growthStatus;
+  }
+*/
+export class HeapGrowthTracker {
+    private _stringMap: StringMap = new StringMap();
+    private _heap: HeapGraph = null;
+    private _irreg_heap: HeapGraph =null;    //Change:- irregular leak heap graph
+    private _irreg_growthStatus: TwoBitArray = null;  //Change:- growth status for irregular heap graph  
+    private _growthStatus: TwoBitArray = null;
+    // DEBUG INFO; this information is shown in a heap explorer tool.
+    public _leakRefs: Uint16Array = null;
+    public _nonLeakVisits: OneBitArray = null;
+  
+    public _irreg_leakRefs: Uint16Array = null;
+    public _irreg_nonLeakVisits: OneBitArray = null;
+  
+    public async addSnapshot(parser: HeapSnapshotParser, log: Log): Promise<void> {
+      const heap = await HeapGraph.Construct(parser, log, this._stringMap);
+      const growthStatus = new TwoBitArray(heap.nodeCount);
+      
+      /*Change :- to store irreg heap graph*/
+      const irreg_heap = heap;
+      const irreg_growthStatus = new TwoBitArray(heap.nodeCount);
+      let flag = 0;
+      
+      if (this._heap !== null) {
+        log.timeEvent(OperationType.PROPAGATE_GROWTH, () => {
+          // Initialize all new nodes to 'NOT_GROWING'.
+          // We only want to consider stable heap paths present from the first snapshot.
+          growthStatus.fill(GrowthStatus.NOT_GROWING);
+          // Merge graphs.
+          flag = propagateGrowthNew(this._heap, this._growthStatus, heap, growthStatus);  //Change:- propagateGrowthNew returns a value
+        });
+        /*
+        Change:- to call old propagate growth on the 1st increasing and second increasing graph for irregular leaks
+        */ 
+        if((flag) && (this._irreg_heap === null)){
+          this._irreg_heap = heap;
+          this._irreg_growthStatus = growthStatus;
+        }
+        else if((flag) && (this._irreg_heap !== null)){
+          log.timeEvent(OperationType.PROPAGATE_GROWTH, () => {
+              // Initialize all new nodes to 'NOT_GROWING'.
+              // We only want to consider stable heap paths present from the first snapshot.
+              irreg_growthStatus.fill(GrowthStatus.NOT_GROWING);
+              // Merge graphs.
+              propagateGrowth(this._irreg_heap, this._irreg_growthStatus, irreg_heap, irreg_growthStatus);  
+            });
+          this._irreg_heap = irreg_heap;
+          this._irreg_growthStatus = irreg_growthStatus;  
+        }
+      }
+      // Keep new graph.
+      this._heap = heap;
+      this._growthStatus = growthStatus;
   }
 
   public getGraph(): HeapGraph {
